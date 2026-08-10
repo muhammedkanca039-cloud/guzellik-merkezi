@@ -1,0 +1,37 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Service {
+  id          String        @id @default(uuid())
+  name        String
+  category    String
+  description String
+  price       Float
+  duration    Int           // Süre (Dakika)
+  imageUrl    String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  appointments Appointment[]
+}
+
+model Appointment {
+  id            String   @id @default(uuid())
+  customerName  String
+  customerPhone String
+  customerEmail String
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  date          String   // YYYY-MM-DD
+  time          String   // HH:MM
+  notes         String?
+  status        String   @default("Beklemede") // Beklemede, Onaylandı, İptal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
