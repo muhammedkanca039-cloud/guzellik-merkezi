@@ -24,7 +24,7 @@ function hashPassword(password: string): string {
 async function main() {
   console.log('Seeding database with beauty center data...');
 
-  // Create or update default Admin user
+  // 1. Create or update default Admin user
   const adminPassword = hashPassword('admin123');
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@lumiere.com' },
@@ -39,7 +39,7 @@ async function main() {
   });
   console.log('Admin user ready:', adminUser.email);
 
-  // Create or update default Customer user
+  // 2. Create or update default Customer user
   const customerPassword = hashPassword('123456');
   const sampleCustomer = await prisma.user.upsert({
     where: { email: 'zeynep@example.com' },
@@ -54,9 +54,8 @@ async function main() {
   });
   console.log('Sample customer ready:', sampleCustomer.email);
 
-  // Clean appointments and services if re-seeding
-  await prisma.appointment.deleteMany({});
-  await prisma.service.deleteMany({});
+  // 3. Seed services if database currently has 0 services
+  const currentServiceCount = await prisma.service.count();
 
   const servicesData = [
     {
@@ -125,7 +124,7 @@ async function main() {
     {
       name: 'G5 Bölgesel Selülit & İncelme Masajı',
       category: 'Bölgesel İncelme',
-      description: 'Ritmik titreşimlerle kan dolaşımını hızlandıran, selülit görünümünü azaltan ve sıkılaşma sağlayan terapi.',
+      description: 'Ritmik titreşimlerle kan dolaşımını hızlandırarak selülit görünümünü azaltan ve sıkılaşma sağlayan terapi.',
       price: 1100,
       duration: 45,
       imageUrl: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
@@ -142,49 +141,53 @@ async function main() {
     }
   ];
 
-  const createdServices = [];
-  for (const s of servicesData) {
-    const service = await prisma.service.create({ data: s });
-    createdServices.push(service);
+  if (currentServiceCount === 0) {
+    console.log('No services found. Seeding initial 9 beauty services...');
+    const createdServices = [];
+    for (const s of servicesData) {
+      const service = await prisma.service.create({ data: s });
+      createdServices.push(service);
+    }
+
+    console.log(`Successfully created ${createdServices.length} services.`);
+
+    // Create sample initial appointments
+    await prisma.appointment.createMany({
+      data: [
+        {
+          customerName: sampleCustomer.name,
+          customerPhone: sampleCustomer.phone,
+          customerEmail: sampleCustomer.email,
+          serviceId: createdServices[0].id,
+          userId: sampleCustomer.id,
+          date: '2026-08-28',
+          time: '11:00',
+          notes: 'Hassas cilt yapısına sahip, bitkisel ürünler tercih ediliyor.',
+          status: 'Onaylandı',
+        },
+        {
+          customerName: 'Elif Kaya',
+          customerPhone: '0544 987 65 43',
+          customerEmail: 'elif.kaya@example.com',
+          serviceId: createdServices[2].id,
+          date: '2026-08-28',
+          time: '14:30',
+          notes: 'İlk seans randevusu.',
+          status: 'Beklemede',
+        },
+      ],
+    });
+    console.log('Sample initial appointments created!');
+  } else {
+    console.log(`Database already has ${currentServiceCount} services. Skipping service seeding.`);
   }
 
-  console.log(`Created ${createdServices.length} services.`);
-
-  // Create sample appointments linked to sampleCustomer
-  const sampleAppointments = [
-    {
-      customerName: sampleCustomer.name,
-      customerPhone: sampleCustomer.phone,
-      customerEmail: sampleCustomer.email,
-      serviceId: createdServices[0].id,
-      userId: sampleCustomer.id,
-      date: '2026-08-28',
-      time: '11:00',
-      notes: 'Hassas cilt yapısına sahip, bitkisel ürünler tercih ediliyor.',
-      status: 'Onaylandı',
-    },
-    {
-      customerName: 'Elif Kaya',
-      customerPhone: '0544 987 65 43',
-      customerEmail: 'elif.kaya@example.com',
-      serviceId: createdServices[2].id,
-      date: '2026-08-28',
-      time: '14:30',
-      notes: 'İlk seans randevusu.',
-      status: 'Beklemede',
-    },
-  ];
-
-  for (const app of sampleAppointments) {
-    await prisma.appointment.create({ data: app });
-  }
-
-  console.log('Sample appointments created successfully!');
+  console.log('Database seeding process completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Seeding error:', e);
     process.exit(1);
   })
   .finally(async () => {
