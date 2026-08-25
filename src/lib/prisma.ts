@@ -1,11 +1,31 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
+import fs from 'fs';
 
-// Ensure SQLite database URL always points to absolute path of prisma/dev.db in Next.js runtime
-if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('file:.')) {
-  const dbPath = path.resolve(process.cwd(), 'prisma', 'dev.db');
-  process.env.DATABASE_URL = `file:${dbPath}`;
+function getDatabaseUrl(): string {
+  if (process.env.VERCEL) {
+    // Vercel serverless environment: copy bundled pre-seeded dev.db to /tmp/dev.db for write access
+    const tmpDbPath = '/tmp/dev.db';
+    const bundledDbPath = path.resolve(process.cwd(), 'prisma', 'dev.db');
+
+    try {
+      if (!fs.existsSync(tmpDbPath) && fs.existsSync(bundledDbPath)) {
+        fs.copyFileSync(bundledDbPath, tmpDbPath);
+      }
+    } catch (e) {
+      console.error('Failed to copy database to /tmp:', e);
+    }
+
+    return fs.existsSync(tmpDbPath) ? `file:${tmpDbPath}` : `file:${bundledDbPath}`;
+  }
+
+  // Local development environment
+  const localDbPath = path.resolve(process.cwd(), 'prisma', 'dev.db');
+  return `file:${localDbPath}`;
 }
+
+const dbUrl = getDatabaseUrl();
+process.env.DATABASE_URL = dbUrl;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -16,7 +36,7 @@ export const prisma =
   new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: dbUrl,
       },
     },
     log: ['query', 'error', 'warn'],
