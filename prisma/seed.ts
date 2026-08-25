@@ -1,11 +1,60 @@
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
+import path from 'path';
 
-const prisma = new PrismaClient();
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('file:.')) {
+  const dbPath = path.resolve(process.cwd(), 'prisma', 'dev.db');
+  process.env.DATABASE_URL = `file:${dbPath}`;
+}
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
 
 async function main() {
   console.log('Seeding database with beauty center data...');
 
-  // Existing data cleaning if any
+  // Create or update default Admin user
+  const adminPassword = hashPassword('admin123');
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@lumiere.com' },
+    update: {},
+    create: {
+      name: 'Yönetici Elif Hanım',
+      email: 'admin@lumiere.com',
+      phone: '0850 123 45 67',
+      password: adminPassword,
+      role: 'ADMIN',
+    },
+  });
+  console.log('Admin user ready:', adminUser.email);
+
+  // Create or update default Customer user
+  const customerPassword = hashPassword('123456');
+  const sampleCustomer = await prisma.user.upsert({
+    where: { email: 'zeynep@example.com' },
+    update: {},
+    create: {
+      name: 'Zeynep Yılmaz',
+      email: 'zeynep@example.com',
+      phone: '0532 123 45 67',
+      password: customerPassword,
+      role: 'CUSTOMER',
+    },
+  });
+  console.log('Sample customer ready:', sampleCustomer.email);
+
+  // Clean appointments and services if re-seeding
   await prisma.appointment.deleteMany({});
   await prisma.service.deleteMany({});
 
@@ -101,14 +150,15 @@ async function main() {
 
   console.log(`Created ${createdServices.length} services.`);
 
-  // Create sample appointments
+  // Create sample appointments linked to sampleCustomer
   const sampleAppointments = [
     {
-      customerName: 'Zeynep Yılmaz',
-      customerPhone: '0532 123 45 67',
-      customerEmail: 'zeynep@example.com',
+      customerName: sampleCustomer.name,
+      customerPhone: sampleCustomer.phone,
+      customerEmail: sampleCustomer.email,
       serviceId: createdServices[0].id,
-      date: '2026-08-12',
+      userId: sampleCustomer.id,
+      date: '2026-08-28',
       time: '11:00',
       notes: 'Hassas cilt yapısına sahip, bitkisel ürünler tercih ediliyor.',
       status: 'Onaylandı',
@@ -118,31 +168,11 @@ async function main() {
       customerPhone: '0544 987 65 43',
       customerEmail: 'elif.kaya@example.com',
       serviceId: createdServices[2].id,
-      date: '2026-08-12',
+      date: '2026-08-28',
       time: '14:30',
       notes: 'İlk seans randevusu.',
       status: 'Beklemede',
     },
-    {
-      customerName: 'Selin Demir',
-      customerPhone: '0555 444 33 22',
-      customerEmail: 'selin@example.com',
-      serviceId: createdServices[4].id,
-      date: '2026-08-13',
-      time: '16:00',
-      notes: 'Ön kontrol yapıldı, onay bekliyor.',
-      status: 'Beklemede',
-    },
-    {
-      customerName: 'Merve Şahin',
-      customerPhone: '0505 111 22 33',
-      customerEmail: 'merve@example.com',
-      serviceId: createdServices[6].id,
-      date: '2026-08-10',
-      time: '10:00',
-      notes: 'French manikür isteği.',
-      status: 'İptal',
-    }
   ];
 
   for (const app of sampleAppointments) {

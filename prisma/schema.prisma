@@ -1,10 +1,22 @@
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  phone        String
+  password     String
+  role         String        @default("CUSTOMER") // CUSTOMER, ADMIN
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
 }
 
 model Service {
@@ -28,6 +40,8 @@ model Appointment {
   customerEmail String
   serviceId     String
   service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   date          String   // YYYY-MM-DD
   time          String   // HH:MM
   notes         String?
