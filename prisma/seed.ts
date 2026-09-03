@@ -1,3 +1,9 @@
+/**
+ * Dosya: prisma/seed.ts
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Veritabanı şeması ve seed (başlangıç verisi) işlemlerini içerir.
+ */
+
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import path from 'path';

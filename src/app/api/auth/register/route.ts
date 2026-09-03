@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/api/auth/register/route.ts
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * API uç noktası (endpoint) işlevlerini içerir. İstemci (client) tarafından gelen istekleri işler.
+ */
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, setSessionCookie } from '@/lib/auth';

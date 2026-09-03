@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/components/ServiceCard.tsx
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Uygulama genelinde tekrar kullanılabilir UI (Arayüz) bileşenidir.
+ */
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';

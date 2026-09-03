@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/api/auth/logout/route.ts
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * API uç noktası (endpoint) işlevlerini içerir. İstemci (client) tarafından gelen istekleri işler.
+ */
+
 import { NextResponse } from 'next/server';
 import { clearSessionCookie } from '@/lib/auth';
 

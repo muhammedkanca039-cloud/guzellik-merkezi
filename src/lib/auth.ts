@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/lib/auth.ts
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Yardımcı fonksiyonlar, kütüphane yapılandırmaları ve veritabanı bağlantılarını içerir.
+ */
+
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import { prisma } from './prisma';
@@ -5,11 +11,14 @@ import { prisma } from './prisma';
 const COOKIE_NAME = 'user_session';
 const SECRET_KEY = process.env.SESSION_SECRET || 'guzellik-merkezi-secret-key-2026';
 
-// Password Hashing
+// Şifre Hashleme (Güvenlik)
+// Kullanıcı şifresini düz metin yerine güvenli bir şekilde saklamak için pbkdf2 algoritmasını kullanır.
 export function hashPassword(password: string): string {
+  // 16 bytelık rastgele bir tuz (salt) oluşturulur
   const salt = crypto.randomBytes(16).toString('hex');
+  // Şifre ve tuz birleştirilerek hash oluşturulur (1000 iterasyon)
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  return `${salt}:${hash}`;
+  return `${salt}:${hash}`; // Tuz ve hash birlikte döndürülür
 }
 
 export function verifyPassword(password: string, storedHash: string): boolean {
@@ -32,14 +41,17 @@ export interface SessionPayload {
   role: string;
 }
 
-// Token creation (simple HMAC signed base64 payload)
+// JWT benzeri basit bir oturum token'ı oluşturur (HMAC imzalı base64 verisi)
 export function createToken(payload: SessionPayload): string {
   const data = JSON.stringify(payload);
   const base64Data = Buffer.from(data).toString('base64url');
+  
+  // Verinin değiştirilmediğinden emin olmak için gizli anahtar ile imzalanır
   const signature = crypto
     .createHmac('sha256', SECRET_KEY)
     .update(base64Data)
     .digest('base64url');
+    
   return `${base64Data}.${signature}`;
 }
 

@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/page.tsx
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Next.js App Router kullanılarak oluşturulmuş sayfa (UI) veya düzen (layout) bileşenidir.
+ */
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -7,6 +13,9 @@ import { prisma } from '@/lib/prisma';
 
 export const revalidate = 0; // Dynamic data
 
+/**
+ * Veritabanından ana sayfada gösterilecek "Öne Çıkan" hizmetleri çeker (En fazla 6 adet)
+ */
 async function getFeaturedServices() {
   try {
     return await prisma.service.findMany({
@@ -20,6 +29,9 @@ async function getFeaturedServices() {
   }
 }
 
+/**
+ * Ana sayfa (Home) bileşeni. Sunucu tarafında (Server Component) render edilir.
+ */
 export default async function HomePage() {
   const featuredServices = await getFeaturedServices();
 

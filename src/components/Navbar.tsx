@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/components/Navbar.tsx
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Uygulama genelinde tekrar kullanılabilir UI (Arayüz) bileşenidir.
+ */
+
 'use client';
 
 import React, { useState, useEffect } from 'react';

@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/api/auth/me/route.ts
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * API uç noktası (endpoint) işlevlerini içerir. İstemci (client) tarafından gelen istekleri işler.
+ */
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 

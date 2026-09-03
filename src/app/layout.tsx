@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/layout.tsx
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Next.js App Router kullanılarak oluşturulmuş sayfa (UI) veya düzen (layout) bileşenidir.
+ */
+
 import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';

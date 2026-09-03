@@ -1,3 +1,9 @@
+/**
+ * Dosya: src/app/profil/page.tsx
+ * Bu dosya, Güzellik Merkezi uygulamasının bir parçasıdır.
+ * Next.js App Router kullanılarak oluşturulmuş sayfa (UI) veya düzen (layout) bileşenidir.
+ */
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
